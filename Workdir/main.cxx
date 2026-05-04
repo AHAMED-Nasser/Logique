@@ -18,8 +18,7 @@ int main() {
 
     string impl = morgan(impl_free("-(p>q)&(p>q)"));
 
-
-    cout << "DEBUG impl_free: " << impl_free("-(p>q)&(p>q)") << endl;
+    cout << "DEBUG impl_free: " << impl_free("(p>q)&(p>q)") << endl;
     cout << "DEBUG morgan + impl_free : " << impl << '\n';
     return 0;
 }

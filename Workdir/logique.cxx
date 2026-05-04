@@ -99,8 +99,7 @@ string impl_free(std::string formule) {
     }
     
     if (starts_with(formule, "-")) {
-        string reste = formule.substr(1);
-        return "-" + impl_free(reste);
+        return "-" + impl_free(formule.substr(1));
     }
 
     int index_op = -1;
