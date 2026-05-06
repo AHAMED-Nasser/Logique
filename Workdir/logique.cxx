@@ -77,6 +77,7 @@ string impl_free(std::string formule) {
     formule = strip(formule);
 
     while (starts_with(formule, "(") && ends_with(formule, ")")) {
+        string inter = formule.substr(1, formule.size() - 2);
         int poids = 0;
         bool est_paire = true;
 
@@ -85,21 +86,17 @@ string impl_free(std::string formule) {
             if (c == '(') poids++;
             else if (c == ')') poids--;
 
-            if (poids == 0) {
+            if (poids < 0) {
                 est_paire = false;
                 break;
             }
         }
 
         if (est_paire){
-            formule = strip(string_between(formule, 1, formule.size() - 1));
+            formule = strip(inter);
         } else {
             break;
         }
-    }
-    
-    if (starts_with(formule, "-")) {
-        return "-" + impl_free(formule.substr(1));
     }
 
     int index_op = -1;
@@ -122,18 +119,24 @@ string impl_free(std::string formule) {
 
         if (index_op != -1) break;
     }
-
-    if (index_op == -1) return formule;
     
-    string phi1 = strip(formule.substr(0, index_op));
-    string phi2 = strip(formule.substr(index_op+1));
-
-    if (op_trouve == '>') {
-        return "(-" + impl_free(phi1) + "|" + impl_free(phi2) + ")";
-    } else {
-        string (1, op_trouve);
-        return "(" + impl_free(phi1) + string(1, op_trouve) + impl_free(phi2) + ")";
+    if (index_op != -1) {
+        string phi1 = strip(formule.substr(0, index_op));
+        string phi2 = strip(formule.substr(index_op+1));
+    
+        if (op_trouve == '>') {
+            return "(-" + impl_free(phi1) + "|" + impl_free(phi2) + ")";
+        } else {
+            string (1, op_trouve);
+            return "(" + impl_free(phi1) + string(1, op_trouve) + impl_free(phi2) + ")";
+        }
     }
+
+    if (starts_with(formule, "-")) {
+        return "-" + impl_free(formule.substr(1));
+    }
+
+    return formule;
 }
 
 
