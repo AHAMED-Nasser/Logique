@@ -73,72 +73,6 @@ string string_between(const string& str, int start, int end) {
     return str.substr(start, end - start);
 }
 
-// string impl_free(string formule) {
-//     formule = strip(formule);
-
-//     while (starts_with(formule, "(") && ends_with(formule, ")")) {
-//         string inter = formule.substr(1, formule.size() - 2);
-//         int poids = 0;
-//         bool est_paire = true;
-
-//         for (unsigned int i = 0; i < formule.size()-1; ++i) {
-//             char c = formule[i];
-//             if (c == '(') poids++;
-//             else if (c == ')') poids--;
-
-//             if (poids < 0) {
-//                 est_paire = false;
-//                 break;
-//             }
-//         }
-
-//         if (est_paire){
-//             formule = strip(inter);
-//         } else {
-//             break;
-//         }
-//     }
-
-//     int index_op = -1;
-//     char op_trouve = '\0';
-
-//     vector<char> operators = {'>', '&', '|'};
-
-//     for (char cible : operators) {
-//         int poids = 0;
-//         for (unsigned int i = 0; i < formule.size(); ++i) {
-//             char c = formule[i];
-//             if (c == '(') poids++;
-//             else if (c == ')') poids--;
-//             else if (poids == 0 && c == cible) {
-//                 index_op = i;
-//                 op_trouve = cible;
-//                 break;
-//             }
-//         }
-
-//         if (index_op != -1) break;
-//     }
-    
-//     if (index_op != -1) {
-//         string phi1 = strip(formule.substr(0, index_op));
-//         string phi2 = strip(formule.substr(index_op+1));
-    
-//         if (op_trouve == '>') {
-//             return "(-" + impl_free(phi1) + "|" + impl_free(phi2) + ")";
-//         } else {
-//             string (1, op_trouve);
-//             return "(" + impl_free(phi1) + string(1, op_trouve) + impl_free(phi2) + ")";
-//         }
-//     }
-
-//     if (starts_with(formule, "-")) {
-//         return "-" + impl_free(formule.substr(1));
-//     }
-
-//     return formule;
-// }
-
 string impl_free(string formule) {
     formule = strip(formule);
 
@@ -188,7 +122,7 @@ string impl_free(string formule) {
             mainStack.stack(subFormula);
         }
     }
-    
+
     Pile reverseStack;
 
         while (!mainStack.isEmpty()) {
