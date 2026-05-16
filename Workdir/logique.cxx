@@ -60,84 +60,85 @@ bool ends_with(const string& str, const string& paterne) {
     return true;
 }
 
-string reversed(const std::string& str) {
+string reversed(const string& str) {
     string final_str(str.rbegin(), str.rend());
     return final_str;
 }
 
-string string_between(const std::string& str, int start, int end) {
+string string_between(const string& str, int start, int end) {
     if (start < 0 || end > static_cast<int>(str.size()) || start > end) {
-        throw std::out_of_range("Invalid start or end indices");
+        throw out_of_range("Invalid start or end indices");
     }
 
     return str.substr(start, end - start);
 }
 
-string impl_free(std::string formule) {
+string impl_free(string formule) {
     formule = strip(formule);
 
-    while (starts_with(formule, "(") && ends_with(formule, ")")) {
-        int poids = 0;
-        bool est_paire = true;
+    Pile mainStack;
 
-        for (unsigned int i = 0; i < formule.size()-1; ++i) {
-            char c = formule[i];
-            if (c == '(') poids++;
-            else if (c == ')') poids--;
+    for (unsigned int i = 0; i < formule.size(); ++i) {
+        char c = formule[i];
 
-            if (poids == 0) {
-                est_paire = false;
-                break;
-            }
-        }
-
-        if (est_paire){
-            formule = strip(string_between(formule, 1, formule.size() - 1));
+        if (c != ')') {
+            mainStack.stack(string(1, c));
         } else {
-            break;
-        }
-    }
-    
-    if (starts_with(formule, "-")) {
-        return "-" + impl_free(formule.substr(1));
-    }
-
-    int index_op = -1;
-    char op_trouve = '\0';
-
-    vector<char> operators = {'>', '&', '|'};
-
-    for (char cible : operators) {
-        int poids = 0;
-        for (unsigned int i = 0; i < formule.size(); ++i) {
-            char c = formule[i];
-            if (c == '(') poids++;
-            else if (c == ')') poids--;
-            else if (poids == 0 && c == cible) {
-                index_op = i;
-                op_trouve = cible;
-                break;
+            Pile subStack;
+            
+            while (!mainStack.isEmpty() && mainStack.top() != "(") {
+                subStack.stack(mainStack.unstack());
             }
+
+            if (!mainStack.isEmpty() && mainStack.top() == "(") {
+                mainStack.unstack();
+            }
+
+            string phi1 = "";
+            string phi2 = "";
+            bool operatorFinded = false;
+
+            while (!subStack.isEmpty()) {
+                string element = subStack.unstack();
+                if (element == ">") {
+                    operatorFinded = true;
+                    continue;
+                }
+
+                if (!operatorFinded) {
+                    phi1 += element;
+                } else {
+                    phi2 += element;
+                }
+            }
+
+            string subFormula;
+            if (operatorFinded) {
+                subFormula = "(-" + phi1 + "|" + phi2 + ")";
+            } else {
+                subFormula = "(" + phi1 + ")";
+            }
+
+            mainStack.stack(subFormula);
+        }
+    }
+
+    Pile reverseStack;
+
+        while (!mainStack.isEmpty()) {
+            reverseStack.stack(mainStack.unstack());
         }
 
-        if (index_op != -1) break;
-    }
-
-    if (index_op == -1) return formule;
-    
-    string phi1 = strip(formule.substr(0, index_op));
-    string phi2 = strip(formule.substr(index_op+1));
-
-    if (op_trouve == '>') {
-        return "(-" + impl_free(phi1) + "|" + impl_free(phi2) + ")";
-    } else {
-        string (1, op_trouve);
-        return "(" + impl_free(phi1) + string(1, op_trouve) + impl_free(phi2) + ")";
-    }
+        string finalResult = "";
+        while (!reverseStack.isEmpty()) {
+            finalResult += reverseStack.unstack();
+        }
+        return finalResult;
 }
 
 
-pair<int, char> get_main_op_morgan(const std::string& formule) {
+// Possible problème avec les parenthèses, à vérifier
+pair<int, char> get_main_op_morgan(const string& formule) {
     vector<char> operators = {'&', '|'};
 
     for (char cible : operators) {
