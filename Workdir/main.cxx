@@ -8,17 +8,16 @@ using namespace std;
 int main() {
 
     Formule f;
-    f.setFormule("(-a)>b");
+    f.setFormule("(a|b)&c");
 
-    string apres_impl = f.impl_free();
-    cout << "DEBUG impl_free : " << apres_impl << endl;
-
-    string apres_morgan =f.morgan();
-    cout << "DEBUG morgan : " << apres_morgan << endl;
-
-    string impl = morgan(impl_free("-(p>q)&(p>q)"));
-
-    cout << "DEBUG impl_free: " << impl_free("(p>q)&(p>q)") << endl;
-    cout << "DEBUG morgan + impl_free : " << impl << '\n';
+    string implement_free = f.impl_free();
+    cout << "VRAI : " << impl_free("(a>b)") << '\n';
+    cout << "VRAI : " << impl_free("(a>(b>c))") << '\n';
+    cout << "VRAI : " << impl_free("-(a>b)") << '\n';
+    cout << "FAUX : " << impl_free("((p>q)&(r>s))") << '\n';
+    cout << "VRAI : " << impl_free("-(p>q)&(r>s)") << '\n';
+    cout << "FAUX : " << impl_free("-((p>q)&(r>s))") << '\n';
+    cout << "FAUX : " << impl_free("((p>q)>(r>s))") << '\n';
+    
     return 0;
 }
