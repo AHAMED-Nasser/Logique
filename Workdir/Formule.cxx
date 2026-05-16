@@ -23,14 +23,14 @@ string Formule::toPostfixe() {
         if (LOGIQUE_H::is_proposition(c)) {
             output += c;
         } else if (LOGIQUE_H::is_proposition(c)) {
-            while (!pile.isEmpty() && LOGIQUE_H::precedence(pile.top()) >= LOGIQUE_H::precedence(c)) {
+            while (!pile.isEmpty() && LOGIQUE_H::precedence(pile.top()[0]) >= LOGIQUE_H::precedence(c)) {
                 output += pile.unstack();
             }
-            pile.stack(c);
+            pile.stack(string(1, c));
         } else if (c == '(') {
-            pile.stack(c);
+            pile.stack(string(1, c));
         } else if (c == ')') {
-            while (!pile.isEmpty() && pile.top() != '(') {
+            while (!pile.isEmpty() && pile.top() != "(") {
                 output += pile.unstack();
             }
             pile.unstack();
@@ -53,15 +53,15 @@ string Formule::toPrefixe() {
         if (LOGIQUE_H::is_proposition(c)) {
             output = c + output;
         } else if (LOGIQUE_H::is_operator(c)) {
-            while (!pile.isEmpty() && LOGIQUE_H::precedence(pile.top()) >= LOGIQUE_H::precedence(c)) {
+            while (!pile.isEmpty() && LOGIQUE_H::precedence(pile.top()[0]) >= LOGIQUE_H::precedence(c)) {
                 output = pile.unstack() + output;
             }
-            pile.stack(c);
+            pile.stack(string(1, c));
         }
         else if (c == ')') {
-            pile.stack(c);
+            pile.stack(string(1, c));
         } else if (c == '(') {
-            while (!pile.isEmpty() && pile.top() != ')') {
+            while (!pile.isEmpty() && pile.top() != ")") {
                 output = pile.unstack() + output;
             }
             pile.unstack();

@@ -6,13 +6,13 @@
 
 class Pile {
     private :
-        std::vector<char> pile;
+        std::vector<std::string> pile;
     
     public:
         bool isEmpty() const;
-        void stack(char c);
-        char unstack();
-        char top() const;
+        void stack(std::string c);
+        std::string unstack();
+        std::string top() const;
         std::string toString() const;
 };
 
