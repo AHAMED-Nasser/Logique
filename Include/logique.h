@@ -17,13 +17,14 @@ bool is_proposition(char c);
 // DEBUT
 std::string strip(const std::string& s);
 
-bool starts_with(const std::string& str, const std::string& paterne);
-
-bool ends_with(const std::string& str, const std::string& paterne);
-
 std::string reversed(const std::string& str);
 
-std::string string_between(const std::string& str, int start, int end);
+// bool starts_with(const std::string& str, const std::string& paterne);
+
+// bool ends_with(const std::string& str, const std::string& paterne);
+
+
+// std::string string_between(const std::string& str, int start, int end);
 // FIN
 
 std::string implFree(std::string formule);

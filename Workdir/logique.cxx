@@ -36,42 +36,43 @@ string strip(const string& s) {
     return striped_str;
 }
 
-bool starts_with(const string& str, const string& paterne) {
-    if (paterne.size() > str.size()) {
-        return false;
-    }
-
-    string sub_str = string_between(str, 0, paterne.size());
-
-    if (sub_str != paterne) return false;
-
-    return true;
-}
-
-bool ends_with(const string& str, const string& paterne) {
-    if (paterne.size() > str.size()) {
-        return false;
-    }
-
-    string sub_str = string_between(str, str.size() - paterne.size(), str.size());
-
-    if (sub_str != paterne) return false;
-
-    return true;
-}
-
 string reversed(const string& str) {
     string final_str(str.rbegin(), str.rend());
     return final_str;
 }
 
-string string_between(const string& str, int start, int end) {
-    if (start < 0 || end > static_cast<int>(str.size()) || start > end) {
-        throw out_of_range("Invalid start or end indices");
-    }
+// bool starts_with(const string& str, const string& paterne) {
+//     if (paterne.size() > str.size()) {
+//         return false;
+//     }
 
-    return str.substr(start, end - start);
-}
+//     string sub_str = string_between(str, 0, paterne.size());
+
+//     if (sub_str != paterne) return false;
+
+//     return true;
+// }
+
+// bool ends_with(const string& str, const string& paterne) {
+//     if (paterne.size() > str.size()) {
+//         return false;
+//     }
+
+//     string sub_str = string_between(str, str.size() - paterne.size(), str.size());
+
+//     if (sub_str != paterne) return false;
+
+//     return true;
+// }
+
+
+// string string_between(const string& str, int start, int end) {
+//     if (start < 0 || end > static_cast<int>(str.size()) || start > end) {
+//         throw out_of_range("Invalid start or end indices");
+//     }
+
+//     return str.substr(start, end - start);
+// }
 
 string implFree(string formule) {
     formule = strip(formule);
