@@ -73,7 +73,7 @@ string string_between(const string& str, int start, int end) {
     return str.substr(start, end - start);
 }
 
-string impl_free(string formule) {
+string implFree(string formule) {
     formule = strip(formule);
 
     Pile mainStack;
@@ -239,4 +239,36 @@ string morgan(string formule) {
     }
 
     return newFormula;
+}
+
+
+string nnf(string formule) {
+    formule = strip(formule);
+
+    Pile mainStack;
+
+    for (unsigned int i = 0; i < formule.size(); ++i) {
+
+        char c = formule[i];
+
+        if (c == '-' && !mainStack.isEmpty() && mainStack.top() == "-") {
+            mainStack.unstack();
+        }
+        else {
+            mainStack.stack(string(1, c));
+        }
+    }
+
+    Pile reverseStack;
+
+    while (!mainStack.isEmpty()) {
+        reverseStack.stack(mainStack.unstack());
+    }
+
+    string finalResult = "";
+    while (!reverseStack.isEmpty()) {
+        finalResult += reverseStack.unstack();
+    }
+
+    return finalResult;
 }

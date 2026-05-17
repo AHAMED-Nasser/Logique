@@ -26,11 +26,12 @@ std::string reversed(const std::string& str);
 std::string string_between(const std::string& str, int start, int end);
 // FIN
 
-std::string impl_free(std::string formule);
+std::string implFree(std::string formule);
 
-std::pair<int, char> get_main_op_morgan(const std::string& formule);
+std::string morganStape(std::string formule);
 
 std::string morgan(std::string formule);
 
+std::string nnf(std::string formule);
 
 #endif

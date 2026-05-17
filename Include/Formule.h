@@ -16,8 +16,12 @@ class Formule {
         std::string toPrefixe();
         std::string toString();
         
-        std::string impl_free();
+        std::string nnf();
+        std::string implFree();
         std::string morgan();
+
+        std::string implFreeNnf();
+        std::string morganNnf();
 
         std::string cnf();
 

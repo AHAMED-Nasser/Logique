@@ -8,26 +8,19 @@ using namespace std;
 int main() {
 
     Formule f;
-    f.setFormule("-((p>q)&(r>s))");
+    f.setFormule("--((p>q)&(r>s))");
 
-    cout << "Formule de base : " << f.toString() << '\n';
-    cout << "Implication : " << f.impl_free() << '\n';
-    cout << "Morgan : " << f.morgan() << '\n';
+    cout << "Formule de base : " << f.toString() << "\n\n";
 
-    // string implement_free = f.impl_free();
-    // cout << "VRAI : " << impl_free("(a>b)") << '\n';
-    // cout << "VRAI : " << impl_free("(a>(b>c))") << '\n';
-    // cout << "VRAI : " << impl_free("-(a>b)") << '\n';
-    // cout << "FAUX : " << impl_free("((p>q)&(r>s))") << '\n';
-    // cout << "VRAI : " << impl_free("-(p>q)&(r>s)") << '\n';
-    // cout << "FAUX : " << impl_free("-((p>q)&(r>s))") << '\n';
-    // cout << "FAUX : " << impl_free("((p>q)>(r>s))") << '\n';
+    cout << "SANS NNF" << "\n\n";
 
-    // cout << "VRAI : " << morgan("(-a|b)") << '\n';
-    // cout << "VRAI : " << morgan("-(-a|b)") << '\n';
-    // cout << "VRAI : " << morgan("-(-p|q)&(-r|s)") << '\n';
-    // cout << "VRAI : " << morgan("-((-p|q)&(-r|s))") << '\n';
-    // cout << "VRAI : " << morgan("-((-p|q)|(-r|s))") << '\n';
+    cout << "Implication : " << f.implFree() << '\n';
+    cout << "Morgan : " << f.morgan() << "\n\n";
+
+    cout << "AVEC NNF" << "\n\n";
+
+    cout << "Implication nnf : " << f.implFreeNnf() << '\n';
+    cout << "Morgan nnf : " << f.morganNnf() << "\n\n";
 
     return 0;
 }
