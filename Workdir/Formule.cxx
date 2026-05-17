@@ -75,16 +75,25 @@ string Formule::toPrefixe() {
     return output;
 }
 
-
-string Formule::impl_free() {
-    return LOGIQUE_H::impl_free(this->formule);
+string Formule::nnf() {
+    return LOGIQUE_H::nnf(this->formule);
 }
 
+string Formule::implFree() {
+    return LOGIQUE_H::implFree(this->formule);
+}
 
 string Formule::morgan() {
-    return LOGIQUE_H::morgan(this->impl_free());
+    return LOGIQUE_H::morgan(this->implFree());
 }
 
+string Formule::implFreeNnf() {
+    return LOGIQUE_H::nnf(this->implFree());
+}
+
+string Formule::morganNnf() {
+    return LOGIQUE_H::nnf(this->morgan());
+}
 
 string Formule::toString() {
     return "Formule{formule = " + this->formule + "}";
