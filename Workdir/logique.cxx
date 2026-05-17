@@ -83,7 +83,8 @@ string impl_free(string formule) {
 
         if (c != ')') {
             mainStack.stack(string(1, c));
-        } else {
+        }
+        else {
             Pile subStack;
             
             while (!mainStack.isEmpty() && mainStack.top() != "(") {
@@ -107,7 +108,8 @@ string impl_free(string formule) {
 
                 if (!operatorFinded) {
                     phi1 += element;
-                } else {
+                }
+                else {
                     phi2 += element;
                 }
             }
@@ -115,7 +117,8 @@ string impl_free(string formule) {
             string subFormula;
             if (operatorFinded) {
                 subFormula = "(-" + phi1 + "|" + phi2 + ")";
-            } else {
+            }
+            else {
                 subFormula = "(" + phi1 + ")";
             }
 
@@ -125,94 +128,115 @@ string impl_free(string formule) {
 
     Pile reverseStack;
 
-        while (!mainStack.isEmpty()) {
-            reverseStack.stack(mainStack.unstack());
-        }
+    while (!mainStack.isEmpty()) {
+        reverseStack.stack(mainStack.unstack());
+    }
 
-        string finalResult = "";
-        while (!reverseStack.isEmpty()) {
-            finalResult += reverseStack.unstack();
-        }
-        return finalResult;
+    string finalResult = "";
+    while (!reverseStack.isEmpty()) {
+        finalResult += reverseStack.unstack();
+    }
+    return finalResult;
 }
 
+string morganStape(string formule) {
+    formule = strip(formule);
 
-// Possible problème avec les parenthèses, à vérifier
-pair<int, char> get_main_op_morgan(const string& formule) {
-    vector<char> operators = {'&', '|'};
+    Pile mainStack;
 
-    for (char cible : operators) {
-        int poids = 0;
-        for (unsigned int i = 0; i < formule.size(); ++i) {
-            char c = formule[i];
-            if (c == '(') poids++;
-            else if (c == ')') poids--;
-            else if (poids == 0 && c == cible) {
-                return {i, cible};
+    for (unsigned int i = 0; i < formule.size(); ++i) {
+        char c = formule[i];
+
+        if (c != ')') {
+            mainStack.stack(string(1, c));
+        }
+        else {
+            Pile subStack;
+
+            while (!mainStack.isEmpty() && mainStack.top() != "(") {
+                subStack.stack(mainStack.unstack()); 
             }
+
+            if (!mainStack.isEmpty() && mainStack.top() == "(") {
+                mainStack.unstack();
+            }
+
+            bool hasGlobalNegation = false;
+            if (!mainStack.isEmpty() && mainStack.top() == "-") {
+                hasGlobalNegation = true;
+                mainStack.unstack();
+            }
+
+            string phi1 = "";
+            string phi2 = "";
+            string goodOperator = "";
+            bool operatorFinded = false;
+
+            while (!subStack.isEmpty()) {
+                string element = subStack.unstack();
+
+                if (element == "&" || element == "|") {
+                    goodOperator = element;
+                    operatorFinded = true;
+                    continue;
+                }
+
+                if (!operatorFinded) {
+                    phi1 += element;
+                }
+                else {
+                    phi2 += element;
+                }
+            }
+
+            string subFormula;
+            if (operatorFinded && hasGlobalNegation) {
+                // On applique la loi de De Morgan ici
+                // -(a & b) -> (-a | -b)
+                // -(a | b) -> (-a & -b)
+                string newOperator = (goodOperator == "&") ? "|" : "&";
+
+                subFormula = "(-" + phi1 + newOperator + "-" + phi2 + ")";
+            }
+            else if (hasGlobalNegation) {
+                // s'il y a une négation "-" mais pas d'opérateur binaire (ex: -(p)), on garde la négation simple
+                subFormula = "(-" + phi1 + ")";
+            }
+            else {
+                // Pas de négation global, on conserve la structure intacte
+                if (operatorFinded) {
+                    subFormula = "(" + phi1 + goodOperator + phi2 + ")";
+                }
+                else {
+                    subFormula = "(" + phi1 + ")";
+                }
+            }
+
+            mainStack.stack(subFormula);
         }
     }
 
-    return {-1, '\0'};
-}
+    Pile reverseStack;
+    while (!mainStack.isEmpty()) {
+        reverseStack.stack(mainStack.unstack());
+    }
 
+    string finalResult = "";
+    while (!reverseStack.isEmpty()) {
+        finalResult += reverseStack.unstack();
+    }
+
+    return finalResult;
+}
 
 string morgan(string formule) {
-    formule = strip(formule);
-    if (formule.size() < 0) return "";
+    string previewFormula = "";
+    string newFormula = strip(formule);
 
-    if (starts_with(formule, "--")) {
-        return morgan(formule.substr(2));
+    while (newFormula != previewFormula) {
+        previewFormula = newFormula;
+        newFormula = morganStape(previewFormula);
     }
 
-    if (starts_with(formule, "(") && ends_with(formule, ")")) {
-        int poids = 0;
-        bool est_paire = true;
-
-        for (unsigned int i = 0; i < formule.size()-1; ++i) {
-            char c = formule[i];
-            if (c == '(') poids++;
-            else if (c == ')') poids--;
-
-            if (poids == 0) {
-                est_paire = false;
-                break;
-            }
-        }
-
-        if (est_paire) {
-            return morgan(strip(string_between(formule, 1, formule.size() - 1)));
-        }
-    }
-
-    pair<int, char> main_op_morgan = get_main_op_morgan(formule);
-    int index_op = main_op_morgan.first;
-    char op_trouve = main_op_morgan.second;
-
-    if (index_op != -1) {
-        string phi1 = strip(string_between(formule, 0, index_op));
-        string phi2 = strip(formule.substr(index_op + 1));
-
-        return "(" + morgan(phi1) + op_trouve + morgan(phi2) + ")";
-    }
-
-    if (starts_with(formule, "-(") && ends_with(formule, ")")) {
-        string contenu = strip(string_between(formule, 2,formule.size() - 1));
-
-        pair<int, char> main_op = get_main_op_morgan(contenu);
-        int index_sous_op = main_op.first;
-        char sous_op = main_op.second;
-
-        if (index_sous_op != -1) {
-            string phi1 = strip(contenu.substr(0, index_sous_op));
-            string phi2 = strip(contenu.substr(index_sous_op + 1));
-
-            // Application de la loi : -(A & B) -> -A | -B
-            string new_op = (sous_op == '&') ? "|" : "&";
-
-            return "(" + morgan("-" + phi1) + new_op + morgan("-" + phi2) + ")";
-        }
-    }
-
-    return formule;
+    return newFormula;
 }
