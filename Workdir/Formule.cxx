@@ -95,6 +95,14 @@ string Formule::morganNnf() {
     return LOGIQUE_H::nnf(this->morgan());
 }
 
+string Formule::cnf() {
+    return LOGIQUE_H::cnf(this->formule);
+}
+
+vector<vector<string>> Formule::cnfList() {
+    return LOGIQUE_H::cnfList(this->cnf());
+}
+
 string Formule::toString() {
     return "Formule{formule = " + this->formule + "}";
 }

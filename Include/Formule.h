@@ -24,6 +24,7 @@ class Formule {
         std::string morganNnf();
 
         std::string cnf();
+        std::vector<std::vector<std::string>> cnfList();
 
         std::string getFormule();
         void setFormule(const std::string& formule);
