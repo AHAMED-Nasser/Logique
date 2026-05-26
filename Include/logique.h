@@ -35,4 +35,14 @@ std::string morgan(std::string formule);
 
 std::string nnf(std::string formule);
 
+std::string blocDistrib(std::string left, std::string right);
+
+std::string cnfStape(std::string formule);
+
+std::string cnf(std::string formule);
+
+std::vector<std::vector<std::string>>  cnfList(std::string);
+
+std::string cleanParenthese(std::string formule);
+
 #endif
