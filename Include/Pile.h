@@ -4,6 +4,13 @@
 #include <vector>
 #include <string>
 
+/**
+ * La classe Pile représente une pile de string et fournit des méthodes pour empiler, dépiler,
+ * vérifier si la pile est vide, etc.
+ * Elle est utilisée dans les différentes fonctions de manipulation de formules logiques
+ * pour gérer les sous-formules et les opérateurs lors de la conversion, de la simplification, etc.
+ */
+
 class Pile {
     private :
         std::vector<std::string> pile;
