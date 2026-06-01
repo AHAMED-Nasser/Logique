@@ -10,11 +10,10 @@ namespace py = pybind11;
 PYBIND11_MODULE(logicEngine, m) {
     m.doc() = "Module C++ de transformation logique pour SAT-Solver";
 
-    m.def("cnfList", &cnfList, "Extrait les clauses CNF sous forme de listes de listes");
-
     py::class_<Formule>(m, "Formule")
         .def(py::init<>())
         .def("setFormule", &Formule::setFormule)
-        .def("cnf", &Formule::cnf);
+        .def("getFormule", &Formule::getFormule)
+        .def("cnf", &Formule::cnf)
+        .def("cnfList", &Formule::cnfList);
 }
-
