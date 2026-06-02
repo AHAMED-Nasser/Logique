@@ -42,6 +42,10 @@ def generate_dimacs(raw_formule, in_file="input.cnf"):
     # 3 -> écriture du fichier DIMACS
     with open(in_file, "w") as file:
         file.write(f"c Fichier genere automatiquement avec python\n") # Le 'c' au début c'est pour commentaire
+        file.write(f"c Formule originale : {raw_formule}\n")
+        file.write(f"c Formule CNF : {formula.cnf()}\n")
+        file.write(f"c Clauses CNF : {clauses}\n")
+        file.write(f"c Correspondance des variables : {dict_vars}\n\n")
         file.write(f"p cnf {len(unique_vars)} {len(clauses)}\n")
         
         for clause in clauses:
@@ -94,9 +98,10 @@ def execute_minisat(input_file="input.cnf", result_file="output.txt"):
 
 
 if __name__ == "__main__":
-    expression = "((a & b) | (c & d))"
-    # expression = "(a & -a)"
+    # expression = "((a & b) | (c & d))" -> SAT
+    # expression = "(a & -a)" -> UNSAT
+    expression = "a|b|c" # -> SAT
     
-    mapping_vars = generate_dimacs(expression, "test_python_dimacs.cnf")
+    mapping_vars = generate_dimacs(expression, "dimacs_file.cnf")
     print(f"-> Correspondance des variables : {mapping_vars}")
-    execute_minisat("test_python_dimacs.cnf", "result.txt")
+    execute_minisat("dimacs_file.cnf", "result.txt")
