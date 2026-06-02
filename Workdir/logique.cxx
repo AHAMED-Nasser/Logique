@@ -7,12 +7,18 @@
 
 using namespace std;
 
+/**
+ * Nous dit si un opérateur est prioriète ou non.
+ */
 int precedence(char c) {
-    if (c == '#' || c == '%' || c == '-') return 1;
-    if (c == '&' || c == '|' || c == '>') return 0;
+    if (c == '#' || c == '%' || c == '-') return 1; // opérateur unitaire plus prioritère
+    if (c == '&' || c == '|' || c == '>') return 0; // opérateur binaire moins prioritère
     return -1;
 }
 
+/**
+ * Nous dit si le caractère en cours d'étude est une opérateur
+ */
 bool is_operator(char c) {
     return (c == '#' || c == '%' || c == '-' || c == '&' || c == '|' || c == '>');
 }
@@ -37,6 +43,9 @@ string strip(const string& s) {
     return striped_str;
 }
 
+/**
+ * Retourne une chaîne de caractère
+ */
 string reversed(const string& str) {
     string final_str(str.rbegin(), str.rend());
     return final_str;
@@ -44,6 +53,9 @@ string reversed(const string& str) {
 
 // FIN
 
+/**
+ * Transforme une implication en disjonction (ex: "a > b" -> "-a | b")
+ */
 string implFree(string formule) {
     formule = strip(formule);
 
@@ -110,6 +122,9 @@ string implFree(string formule) {
     return finalResult;
 }
 
+/**
+ * Renvoie une étape de la formule appliquée à la loi de De Morgan 
+ */
 string morganStape(string formule) {
     formule = strip(formule);
 
@@ -200,6 +215,9 @@ string morganStape(string formule) {
     return finalResult;
 }
 
+/**
+ * Renvoie l'entièreté de la formule appliquée à la loi de De Morgan
+ */
 string morgan(string formule) {
     string previewFormula = "";
     string newFormula = strip(formule);
@@ -212,7 +230,9 @@ string morgan(string formule) {
     return newFormula;
 }
 
-
+/**
+ * Renvoie la formule avec les négation simplifié (ex: "--a" -> "a" ou encore "---a" -> "-a")
+ */
 string nnf(string formule) {
     formule = strip(formule);
 
@@ -244,6 +264,9 @@ string nnf(string formule) {
     return finalResult;
 }
 
+/**
+ * Renvoie la formule après la distributivité
+ */
 string blocDistrib(string left, string right) {
     left = strip(left);
     right = strip(right);
@@ -300,7 +323,7 @@ string blocDistrib(string left, string right) {
 }
 
 
-string cnfStape(string formule) { // Fonction à revoir
+string cnfStape(string formule) {
     formule = strip(formule);
     // formule = nnf(morgan(implFree(formule)));
     Pile mainStack;
@@ -381,6 +404,7 @@ string cnf(string formule) {
     return cleanParenthese(nouvelle);
 }
 
+
 vector<vector<string>> cnfList(string formule) {
     formule = strip(formule);
 
@@ -459,6 +483,7 @@ vector<vector<string>> cnfList(string formule) {
     return list;
 }
 
+
 string cleanParenthese(string formule) {
     formule = strip(formule);
 
@@ -485,4 +510,3 @@ string cleanParenthese(string formule) {
 
     return formule;
 }
-

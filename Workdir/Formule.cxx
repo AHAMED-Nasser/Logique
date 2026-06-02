@@ -9,11 +9,9 @@ string Formule::getFormule() {
     return this->formule;
 }
 
-
 void Formule::setFormule(const string& formule) {
     this->formule = formule;
 }
-
 
 string Formule::toPostfixe() {
     string output;
@@ -43,7 +41,6 @@ string Formule::toPostfixe() {
 
     return output;
 }
-
 
 string Formule::toPrefixe() {
     string output;

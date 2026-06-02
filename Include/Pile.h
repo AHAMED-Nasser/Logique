@@ -13,14 +13,14 @@
 
 class Pile {
     private :
-        std::vector<std::string> pile;
+        std::vector<std::string> pile; // Initialisation d'un vector de string vide
     
     public:
-        bool isEmpty() const;
-        void stack(std::string c);
-        std::string unstack();
-        std::string top() const;
-        std::string toString() const;
+        bool isEmpty() const; // Vérifi si la pile est vide
+        void stack(std::string c); // Permet d'empiler
+        std::string unstack(); // Permet de dépiler
+        std::string top() const; // Renvoie la valeur au-dessu de la pile sans la dépiler
+        std::string toString() const; // Renvoie la pile sous forme d'une liste
 };
 
 #endif
