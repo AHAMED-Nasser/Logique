@@ -15,7 +15,7 @@ void Pile::stack(string c) {
 }
 
 string Pile::unstack() {
-    if (pile.empty()) throw std::out_of_range("Pile vide");
+    if (pile.empty()) throw std::out_of_range("Pile vide"); // Si la pile est vide -> erreur
     string c = pile.back();
     pile.pop_back();
     return c;
@@ -27,10 +27,11 @@ string Pile::top() const {
 }
 
 string Pile::toString() const {
+    // Construction basique d'une chaine de caractère
     std::string s = "[";
     for (unsigned int i = 0; i < pile.size(); ++i) {
         s += pile[i];
-        if (i < pile.size() - 1) {
+        if (i < pile.size() - 1) { // Évite une virgule à la fin de la liste
             s += ",";
         }
     }

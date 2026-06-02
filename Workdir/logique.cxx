@@ -7,12 +7,18 @@
 
 using namespace std;
 
+/**
+ * Nous dit si un opérateur est prioriète ou non.
+ */
 int precedence(char c) {
-    if (c == '#' || c == '%' || c == '-') return 1;
-    if (c == '&' || c == '|' || c == '>') return 0;
+    if (c == '#' || c == '%' || c == '-') return 1; // opérateur unitaire plus prioritère
+    if (c == '&' || c == '|' || c == '>') return 0; // opérateur binaire moins prioritère
     return -1;
 }
 
+/**
+ * Nous dit si le caractère en cours d'étude est une opérateur
+ */
 bool is_operator(char c) {
     return (c == '#' || c == '%' || c == '-' || c == '&' || c == '|' || c == '>');
 }
@@ -25,6 +31,7 @@ bool is_proposition(char c) {
  * Fonction équivalente à la fonctoin strip de python,
  * qui permet de retirer tout les espace d'un string
  */
+// DEBUT
 string strip(const string& s) {
     string striped_str;
     for (unsigned int i = 0; i < s.size(); ++i) {
@@ -36,44 +43,19 @@ string strip(const string& s) {
     return striped_str;
 }
 
+/**
+ * Retourne une chaîne de caractère
+ */
 string reversed(const string& str) {
     string final_str(str.rbegin(), str.rend());
     return final_str;
 }
 
-// bool starts_with(const string& str, const string& paterne) {
-//     if (paterne.size() > str.size()) {
-//         return false;
-//     }
+// FIN
 
-//     string sub_str = string_between(str, 0, paterne.size());
-
-//     if (sub_str != paterne) return false;
-
-//     return true;
-// }
-
-// bool ends_with(const string& str, const string& paterne) {
-//     if (paterne.size() > str.size()) {
-//         return false;
-//     }
-
-//     string sub_str = string_between(str, str.size() - paterne.size(), str.size());
-
-//     if (sub_str != paterne) return false;
-
-//     return true;
-// }
-
-
-// string string_between(const string& str, int start, int end) {
-//     if (start < 0 || end > static_cast<int>(str.size()) || start > end) {
-//         throw out_of_range("Invalid start or end indices");
-//     }
-
-//     return str.substr(start, end - start);
-// }
-
+/**
+ * Transforme une implication en disjonction (ex: "a > b" -> "-a | b")
+ */
 string implFree(string formule) {
     formule = strip(formule);
 
@@ -140,6 +122,9 @@ string implFree(string formule) {
     return finalResult;
 }
 
+/**
+ * Renvoie une étape de la formule appliquée à la loi de De Morgan 
+ */
 string morganStape(string formule) {
     formule = strip(formule);
 
@@ -230,6 +215,9 @@ string morganStape(string formule) {
     return finalResult;
 }
 
+/**
+ * Renvoie l'entièreté de la formule appliquée à la loi de De Morgan
+ */
 string morgan(string formule) {
     string previewFormula = "";
     string newFormula = strip(formule);
@@ -242,7 +230,9 @@ string morgan(string formule) {
     return newFormula;
 }
 
-
+/**
+ * Renvoie la formule avec les négation simplifié (ex: "--a" -> "a" ou encore "---a" -> "-a")
+ */
 string nnf(string formule) {
     formule = strip(formule);
 
@@ -274,6 +264,9 @@ string nnf(string formule) {
     return finalResult;
 }
 
+/**
+ * Renvoie la formule après la distributivité
+ */
 string blocDistrib(string left, string right) {
     left = strip(left);
     right = strip(right);
@@ -330,7 +323,7 @@ string blocDistrib(string left, string right) {
 }
 
 
-string cnfStape(string formule) { // Fonction à revoir
+string cnfStape(string formule) {
     formule = strip(formule);
     // formule = nnf(morgan(implFree(formule)));
     Pile mainStack;
@@ -411,6 +404,7 @@ string cnf(string formule) {
     return cleanParenthese(nouvelle);
 }
 
+
 vector<vector<string>> cnfList(string formule) {
     formule = strip(formule);
 
@@ -489,6 +483,7 @@ vector<vector<string>> cnfList(string formule) {
     return list;
 }
 
+
 string cleanParenthese(string formule) {
     formule = strip(formule);
 
@@ -515,4 +510,3 @@ string cleanParenthese(string formule) {
 
     return formule;
 }
-
