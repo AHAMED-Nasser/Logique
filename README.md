@@ -57,8 +57,32 @@ Le module de liaison `binding.cxx` expose les composants C++ à l'interpréteur 
 
 ## 4. Pipeline d'Orchestration (Python)
 
-Le fichier `main.py` gère la logistique d'entrée, la conversion numérique des littéraux et l'interfaçage système avec le solveur externe.
+Le fichier `minisat_fonctions.py` gère la logistique d'entrée, la conversion numérique des littéraux et l'interfaçage système avec le solveur externe.
 
-*   `generer_dimacs(expression_brute, fichier_sortie)` : Récupère la structure de clauses générée par le code C++, recense l'ensemble des variables uniques pour leur attribuer un index numérique entier positif (1, 2, 3...) et produit le fichier au format standardisé `.cnf`. Le fichier inclut l'en-tête DIMACS standard (`p cnf [nombre_variables] [nombre_clauses]`) et chaque clause se termine par le marqueur `0`.
-*   `executer_minisat(fichier_cnf, fichier_resultat)` : Appelle l'exécutable système `minisat` via un sous-processus, intercepte les codes de retour spécifiques du solveur (10 pour SAT, 20 pour UNSAT) et extrait le verdict final pour l'afficher dans la console.
+*   `generer_dimacs(raw_formula: str, in_file="input.cnf")` : Récupère la structure de clauses générée par le code C++, recense l'ensemble des variables uniques pour leur attribuer un index numérique entier positif (1, 2, 3...) et produit le fichier au format standardisé `.cnf`. Le fichier inclut l'en-tête DIMACS standard (`p cnf [nombre_variables] [nombre_clauses]`) et chaque clause se termine par le marqueur `0`.
+*   `executer_minisat(input_file="input.cnf", result_file="output.txt")` : Appelle l'exécutable système `minisat` via un sous-processus, intercepte les codes de retour spécifiques du solveur (10 pour SAT, 20 pour UNSAT) et retourne la satifiabilité de l'expression.
+*   `show_satisfiability(expression: str)` :
+Exécute les deux fonctions précédente et renvoie le résultat de la satisfiabilité de l'expression (SAT ou UNSAT)
 
+Le fichier `many_minisat.py` fait exactement la même chose que le fichier `minisat_fonctions.py`, mais étendu à l'échelle de plusieurs expressions. Cette fois-ci, on teste la satisfiabilité de plusieurs expressions données dans un ou plusieurs fichiers.
+
+*   `build_expressions_list(expression_file: str)` :
+Cette fonction prend en paramètre le chemin d'un fichier texte contenant des expressions logiques, chacune séparée par des virgules. Son but est de retourner une liste contenant toutes les expressions du fichier.
+*   `return_expressions_satisfiability(expressions_files: list)` :
+Cette fonction prend en paramètre une liste de fichiers texte contenant chacun des expressions logiques. Le but de cette fonction est de renvoyer la satisfiabilité finale de l'ensemble de ces fichiers. Par exemple, si au moins un fichier est insatisfiable, on renvoie `UNSAT`, sinon on renvoie `SAT`.
+
+Voici un exemple d'exécution de la dernière fonction
+```python
+# fichier expressions1.txt -> SAT
+# fichier expressions2.txt -> SAT
+# fichier expression3.txt -> UNSAT
+
+expressions = ["expressions1.txt", "expressions2.txt", "expressions3.txt"]
+print(return_expressions_satisfiability(expressions))
+```
+Donc le résultat sera
+```bash
+UNSAT
+```
+
+> Il faut noter que ces algorithmes n'ont pas été pensés pour être optimaux dès le départ. Donc, un grand nombre de fichiers testés peut possiblement augmenter le temps d'exécution du processeur.

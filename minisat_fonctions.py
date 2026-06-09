@@ -2,7 +2,7 @@ import subprocess # permet l'execution de commande dans le terminal depuis pytho
 import logicEngine # notre bibliothèque c++
 
 
-def generate_dimacs(raw_formule, in_file="input.cnf"):
+def generate_dimacs(raw_formula, in_file="input.cnf") -> dict:
     """
         Cette fonction prend une formule logique en entrée, la transforme en format DIMACS et l'écrit dans un fichier.
 
@@ -24,7 +24,7 @@ def generate_dimacs(raw_formule, in_file="input.cnf"):
 
     # 1 -> Transformation de notre formule en liste de clauses cnf
     formula = logicEngine.Formule()
-    formula.setFormule(raw_formule)
+    formula.setFormule(raw_formula)
     clauses = formula.cnfList()
     
     # 2 -> Identificateur des variables unique pour le DIMACS
@@ -42,7 +42,7 @@ def generate_dimacs(raw_formule, in_file="input.cnf"):
     # 3 -> écriture du fichier DIMACS
     with open(in_file, "w") as file:
         file.write(f"c Fichier genere automatiquement avec python\n") # Le 'c' au début c'est pour commentaire
-        file.write(f"c Formule originale : {raw_formule}\n")
+        file.write(f"c Formule originale : {raw_formula}\n")
         file.write(f"c Formule CNF : {formula.cnf()}\n")
         file.write(f"c Clauses CNF : {clauses}\n")
         file.write(f"c Correspondance des variables : {dict_vars}\n\n")
@@ -59,11 +59,10 @@ def generate_dimacs(raw_formule, in_file="input.cnf"):
             
             file.write(" ".join(dimacs_row) + " 0\n")
     
-    print(f"[+] Fichier DIMACS écrit avec succès : {in_file}")
     return dict_vars # le retour de ce dictionnaire est optionnel
 
 
-def execute_minisat(input_file="input.cnf", result_file="output.txt"):
+def execute_minisat(input_file="input.cnf", result_file="output.txt") -> str:
     """
         Exécute MiniSAT sur un fichier DIMACS et créé et lit le résultat.
 
@@ -82,7 +81,6 @@ def execute_minisat(input_file="input.cnf", result_file="output.txt"):
     """
 
     try:
-        print("[*] Lancement de MiniSAT...")
         subprocess.run(["minisat", input_file, result_file], capture_output=True) # capture_output=True pour éviter que les messages de minisat s'affichent dans le terminal
     except FileNotFoundError:
         print("[-] Erreur : MiniSAT n'est pas installé ou absent du PATH.")
@@ -92,9 +90,29 @@ def execute_minisat(input_file="input.cnf", result_file="output.txt"):
         # Lecture et affichage du resultat de MiniSAT (SAT ou UNSAT)
         with open(result_file, "r") as file:
             result = file.readline().strip()
-            print(f"RESULTAT MINISAT : {result}")
     except FileNotFoundError:
         print("[-] Erreur : MiniSAT a tourné mais le fichier de résultat n'a pas été généré.")
+
+    return result
+
+
+def show_satisfiability(expression: str) -> str:
+    """
+        Affiche la satisfiabilité d'une formule logique donnée.
+
+        param
+        -----
+        expression : str -> la formule logique à évaluer, par exemple : "((a & b) | (c & d))"
+
+        exemple
+        -------
+        >>> show_satisfiability("((a & b) | (c & d))")
+        [*] Lancement de MiniSAT...
+        RESULTAT MINISAT : SAT
+    """
+    generate_dimacs(expression, "temp.cnf")
+    result = execute_minisat("temp.cnf", "temp_result.txt")
+    return result
 
 
 if __name__ == "__main__":
@@ -102,6 +120,4 @@ if __name__ == "__main__":
     # expression = "(a & -a)" -> UNSAT
     expression = "a|b|c" # -> SAT
     
-    mapping_vars = generate_dimacs(expression, "dimacs_file.cnf")
-    print(f"-> Correspondance des variables : {mapping_vars}")
-    execute_minisat("dimacs_file.cnf", "result.txt")
+    show_satisfiability(expression)
