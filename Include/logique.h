@@ -37,8 +37,17 @@ std::string cnfStape(std::string formule); // Retourne la formule avec UNE SEULE
 
 std::string cnf(std::string formule); // Retourne la formule sous forme CNF
 
+std::string negation_formula(std::string formule); // Retourne la négation de la formule
+
 std::vector<std::vector<std::string>>  cnfList(std::string); // Retourne la formule CNF sous forme d'un vecteur de vecteur
 // Exemple: "(a|b) & (a\c) devient {{a,b},{a,c}}"
+
+std::vector<std::vector<std::string>> cnfListNegation(std::string formule); // Retourne la formule négative sous forme d'un vecteur de vecteur
+// Exemple: "(a | (b & c))" devient {{-a}, {-b,-c}}
+
+
+
+
 
 std::string cleanParenthese(std::string formule); // Retourne la formule sans les parenthèse global au tours.
 

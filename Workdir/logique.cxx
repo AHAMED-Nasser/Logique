@@ -484,6 +484,18 @@ vector<vector<string>> cnfList(string formule) {
 }
 
 
+string negation_formula(string formule) {
+    formule = strip(formule);
+
+    return cnf("-(" + formule + ")");
+}
+
+
+vector<vector<string>> cnfListNegation(string formule) {
+    return cnfList(negation_formula(formule));
+} 
+
+
 string cleanParenthese(string formule) {
     formule = strip(formule);
 

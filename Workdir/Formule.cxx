@@ -72,6 +72,15 @@ string Formule::toPrefixe() {
     return output;
 }
 
+
+string Formule::negation_formula() {
+    return LOGIQUE_H::negation_formula(this->formule);
+}
+
+vector<vector<string>> Formule::cnfListNegation() {
+    return LOGIQUE_H::cnfListNegation(this->formule);
+}
+
 string Formule::nnf() {
     return LOGIQUE_H::nnf(this->formule);
 }

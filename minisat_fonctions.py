@@ -2,65 +2,121 @@ import subprocess # permet l'execution de commande dans le terminal depuis pytho
 import logicEngine # notre bibliothèque c++
 
 
-def generate_dimacs(raw_formula, in_file="input.cnf") -> dict:
+def build_expressions_list(expression_file: str) -> list:
     """
-        Cette fonction prend une formule logique en entrée, la transforme en format DIMACS et l'écrit dans un fichier.
+    Renvoi une list contenant les expressions du fichier expressions_file
 
-        param
-        -----
-        raw_formule : str -> la formule logique à transformer, par exemple : "((a & b) | (c & d))"
-        in_file : str -> le nom du fichier de sortie pour le format DIMACS, par défaut "input.cnf"
+    param
+    -----
+    - expressions_file : str -> fichier text contenant tout les expressions
 
-        return
-        ------
-        dict -> un dictionnaire de correspondance entre les variables de la formule et les identifiants numériques utilisés dans le format DIMACS, par exemple : {'a': 1, 'b': 2, 'c': 3, 'd': 4}
+    return
+    ------
+    - list -> list contenant les expressions
 
-        exemple
-        -------
-        >>> generate_dimacs("((a & b) | (c & d))", "test.cnf")
-        [*] Fichier DIMACS écrit avec succès : test.cnf
-        {'a': 1, 'b': 2, 'c': 3, 'd': 4}
+    exemple
+    -------
+    >>> exemple de fichier (expressions.txt) : ((s&-v)>p),(p>a)
+    >>> build_expressions_list("expressions.txt")
+    ['((s&-v)>p)', '(p>a)']
     """
+    with open(expression_file, 'r') as file:
+        contents = file.read().strip()
+        
+        expressions = contents.replace('\n', ',').split(',')
+                
+    return [expr.strip() for expr in expressions if expr.strip()]
 
-    # 1 -> Transformation de notre formule en liste de clauses cnf
+
+def build_clauses_list(expression_files: list[str]) -> list:
+    """
+    Renvoi un liste contenant chaque expression sous la forme cnfList
+
+    param
+    -----
+    - expression_file : str -> fichier text contenant des expressions logiques
+
+    return
+    ------
+    - list -> liste contenant les expression sous la forme cnfList
+
+    exempl
+    ------
+    >>> exemple de fichier (expressions.txt) : ((s&-v)>p),(p>a),(a|(b&c))
+    >>> build_clauses_list("expressions.txt")
+    [['-s', 'v', 'p'], ['-p', 'a'], ['a', 'b'], ['a', 'c']]
+    """
+    final_list = []
     formula = logicEngine.Formule()
-    formula.setFormule(raw_formula)
-    clauses = formula.cnfList()
-    
-    # 2 -> Identificateur des variables unique pour le DIMACS
-    unique_vars = set() # un set pour éviter les doublons des variables
 
+    all_formula = None
+
+    for file in expression_files:
+        all_formula = build_expressions_list(file)
+
+        for expr in all_formula:
+            formula.setFormule(expr)
+            clause = formula.cnfList()
+
+            for sub_expr in clause:
+                final_list.append(sub_expr)
+
+    return final_list
+
+
+def write_dimac_file_from_clauses(clauses: list, input_file="temp_eval.cnf"):
+    unique_vars = set()
     for clause in clauses:
         for litteral in clause:
-            name_var = litteral.replace("-", "")
-            unique_vars.add(name_var)
+            unique_vars.add(litteral.replace("-", ""))
     
-    # On met tous ça dans un dictionnaire
-    # ex: ['a', 'b', 'c'] va donner {'a':1, 'b':2, 'c':3}
     dict_vars = {name: i+1 for i, name in enumerate(sorted(unique_vars))}
 
-    # 3 -> écriture du fichier DIMACS
-    with open(in_file, "w") as file:
-        file.write(f"c Fichier genere automatiquement avec python\n") # Le 'c' au début c'est pour commentaire
-        file.write(f"c Formule originale : {raw_formula}\n")
-        file.write(f"c Formule CNF : {formula.cnf()}\n")
-        file.write(f"c Clauses CNF : {clauses}\n")
-        file.write(f"c Correspondance des variables : {dict_vars}\n\n")
+    with open(input_file, "w") as file:
+        file.write(f"c Fichier genere dynamiquement pour le test courant\n")
         file.write(f"p cnf {len(unique_vars)} {len(clauses)}\n")
         
         for clause in clauses:
             dimacs_row = []
             for litteral in clause:
                 if litteral.startswith("-"):
-                    raw_name = litteral[1:]
-                    dimacs_row.append(f"-{dict_vars[raw_name]}")
+                    dimacs_row.append(f"-{dict_vars[litteral[1:]]}")
                 else:
                     dimacs_row.append(f"{dict_vars[litteral]}")
-            
             file.write(" ".join(dimacs_row) + " 0\n")
-    
-    return dict_vars # le retour de ce dictionnaire est optionnel
 
+
+def build_negation_cnfList(expression_file: str) -> list:
+    """
+        Construit la négation d'une formule logique donnée sous forme de cnfList.
+
+        param
+        -----
+        expression_file : str -> le nom du fichier contenant la formule logique à négativer
+
+        return
+        ------
+        list : la négation de la formule logique sous forme de cnfList
+
+        exemple
+        -------
+        >>> exemple de fichier (expression.txt) : (a|b)
+        >>> build_negation_cnfList("expression.txt")
+        [['-a'], ['-b']]
+    """
+    formula = logicEngine.Formule()
+    all_formula = build_expressions_list(expression_file)
+
+    negation_cnfList = []
+
+    for expr in all_formula:
+        formula.setFormule(expr)
+        clause = formula.cnfListNegation()
+
+        for sub_expr in clause:
+            negation_cnfList.append(sub_expr)
+
+    return negation_cnfList
 
 def execute_minisat(input_file="input.cnf", result_file="output.txt") -> str:
     """
@@ -73,11 +129,8 @@ def execute_minisat(input_file="input.cnf", result_file="output.txt") -> str:
 
         exemple
         -------
-        >>> execute_minisat("test.cnf", "result.txt")
-        [*] Lancement de MiniSAT...
-        RESULTAT MINISAT : SAT
-        ou
-        RESULTAT MINISAT : UNSAT
+        >>> execute_minisat("input.cnf", "output.txt")
+        SAT or UNSAT
     """
 
     try:
@@ -96,28 +149,56 @@ def execute_minisat(input_file="input.cnf", result_file="output.txt") -> str:
     return result
 
 
-def show_satisfiability(expression: str) -> str:
-    """
-        Affiche la satisfiabilité d'une formule logique donnée.
+def verify_X_implication(file_K, file_f, file_X) -> str:
+    clauses_K = build_clauses_list([file_K])
+    clauses_f = build_clauses_list([file_f])
 
-        param
-        -----
-        expression : str -> la formule logique à évaluer, par exemple : "((a & b) | (c & d))"
+    statics_clauses = clauses_K + clauses_f
+    negations_X = build_negation_cnfList(file_X)
 
-        exemple
-        -------
-        >>> show_satisfiability("((a & b) | (c & d))")
-        [*] Lancement de MiniSAT...
-        RESULTAT MINISAT : SAT
-    """
-    generate_dimacs(expression, "temp.cnf")
-    result = execute_minisat("temp.cnf", "temp_result.txt")
-    return result
+    write_dimac_file_from_clauses(statics_clauses, "temp_K_f_check.cnf")
+    if execute_minisat("temp_K_f_check.cnf", "temp_check_output.txt") == "UNSAT":
+        # f contredit directement K, ce n'est donc pas un théorème valide
+        return False
+
+    eval_vrai = True
+
+    for x in negations_X:
+        if not eval_vrai:
+            break
+
+        # construction de la conjonction : K et f et negation(x)
+        clauses_combined = statics_clauses + [x]
+        # print(clauses_combined)
+
+        # Ecriture du fichier DIMACS pour cette conjonction
+        write_dimac_file_from_clauses(clauses_combined, "temp_val.cnf")
+
+
+        # Execution de MiniSAT pour vérifier la satisfiabilité de la conjonction
+        result = execute_minisat("temp_val.cnf", "temp_output.txt")
+        # print(f"Resultat MiniSAT pour (K et f et not x) : {result}")
+        # if result == "SAT":
+        #     print(f"Par contradiction on voit que x n'est pas une conséquence logique de K et f, donc l'implication est fausse.")
+
+        if result == "UNSAT":
+            
+            K_and_X_clauses = clauses_K + [x]
+            write_dimac_file_from_clauses(K_and_X_clauses, "temp_K_X.cnf")
+            result_K_X = execute_minisat("temp_K_X.cnf", "temp_K_X_output.txt")
+            # print(f"Resultat MiniSAT pour (K et not x) : {result_K_X}")
+
+            if result_K_X == "SAT":
+                # print(f"Par contradiction on voit que x est une conséquence logique de K, donc l'implication est vraie.")
+                eval_vrai = False
+
+        if eval_vrai:
+            eval_vrai = True
+        else:
+            eval_vrai = False
+
+    return eval_vrai
 
 
 if __name__ == "__main__":
-    # expression = "((a & b) | (c & d))" -> SAT
-    # expression = "(a & -a)" -> UNSAT
-    expression = "a|b|c" # -> SAT
-    
-    show_satisfiability(expression)
+    print(verify_X_implication("file_K.txt", "file_f.txt", "file_X.txt"))
