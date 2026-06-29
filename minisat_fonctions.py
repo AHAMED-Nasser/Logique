@@ -149,13 +149,17 @@ def execute_minisat(input_file="input.cnf", result_file="output.txt") -> str:
     return result
 
 
-def verify_implication(file_K, file_f, file_X) -> str:
+def verify_X_implication(file_K, file_f, file_X) -> str:
     clauses_K = build_clauses_list([file_K])
     clauses_f = build_clauses_list([file_f])
 
     statics_clauses = clauses_K + clauses_f
-    
     negations_X = build_negation_cnfList(file_X)
+
+    write_dimac_file_from_clauses(statics_clauses, "temp_K_f_check.cnf")
+    if execute_minisat("temp_K_f_check.cnf", "temp_check_output.txt") == "UNSAT":
+        # f contredit directement K, ce n'est donc pas un théorème valide
+        return False
 
     eval_vrai = True
 
@@ -173,7 +177,7 @@ def verify_implication(file_K, file_f, file_X) -> str:
 
         # Execution de MiniSAT pour vérifier la satisfiabilité de la conjonction
         result = execute_minisat("temp_val.cnf", "temp_output.txt")
-        print(f"Resultat MiniSAT pour (K et f et not x) : {result}")
+        # print(f"Resultat MiniSAT pour (K et f et not x) : {result}")
         # if result == "SAT":
         #     print(f"Par contradiction on voit que x n'est pas une conséquence logique de K et f, donc l'implication est fausse.")
 
@@ -182,13 +186,14 @@ def verify_implication(file_K, file_f, file_X) -> str:
             K_and_X_clauses = clauses_K + [x]
             write_dimac_file_from_clauses(K_and_X_clauses, "temp_K_X.cnf")
             result_K_X = execute_minisat("temp_K_X.cnf", "temp_K_X_output.txt")
-            print(f"Resultat MiniSAT pour (K et not x) : {result_K_X}")
+            # print(f"Resultat MiniSAT pour (K et not x) : {result_K_X}")
 
-            if result_K_X == "UNSAT":
+            if result_K_X == "SAT":
                 # print(f"Par contradiction on voit que x est une conséquence logique de K, donc l'implication est vraie.")
-                pass
-            else:
                 eval_vrai = False
+
+        if eval_vrai:
+            eval_vrai = True
         else:
             eval_vrai = False
 
@@ -196,4 +201,4 @@ def verify_implication(file_K, file_f, file_X) -> str:
 
 
 if __name__ == "__main__":
-    print(verify_implication("file_K.txt", "file_f.txt", "file_X.txt"))
+    print(verify_X_implication("file_K.txt", "file_f.txt", "file_X.txt"))
