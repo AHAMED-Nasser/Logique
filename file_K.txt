@@ -1,1 +1,1 @@
-sucre, cafe, (gasoil > -miam), gasoil
+cafe, gasoil, (gasoil > -miam)
