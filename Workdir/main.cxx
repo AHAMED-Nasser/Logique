@@ -5,6 +5,7 @@
 
 using namespace std;
 
+// Fonction de teste pour afficher un vector<vector<string>> de manière lisible
 void displayVector(vector<vector<string>> listCnf) {
     cout << "[";
     for (size_t i = 0; i < listCnf.size(); ++i) {
@@ -33,42 +34,30 @@ int main() {
 
     Formule f;
 
-    // vector<string> testFormules = {
+    vector<string> testFormules = {
     //     // 1. Cas limites
     //     "a",
     //     "-a",
     //     "(((a)))",
     //     // 2. Opérateurs multiples de même niveau
-    //     "a|b|c",
-    //     "a & b & c",
-    //     "((a & b) | c)",
+        // "a|b|c|c"
+    //     "a &|b|c & c",
+    //     "((a &|b|c) | c)",
     //     // 3. Cas De Morgan & Négations complexes
     //     "-(p>q)&(p>q)", // VOIR POUR CE CAS LÀ
-    //     "-((a & b) | (c & d))", // VOIR CE QUI CLOCHE
+    //     "-((a &|b|c) | (c & d))", // VOIR CE QUI CLOCHE
     //     // "----a",
     //     // 4. Distributivité intensive
-    //     "((a & b) | (c & d))",
-    //     "((a & (b & c)) | d)", // VOIR CE CAS PRÉCIS
+    //     "((a &|b|c) | (c & d))",
+    //     "((a & |b|c & c)) | d)", // VOIR CE CAS PRÉCIS
     //     // 5. Implications imbriquées.
-    //     "(a > (b > (c > d)))", // VOIR CE CAS AUSSI
+    //     "(a > |b|c > (c > d)))", // VOIR CE CAS AUSSI
     //     "((p > q) > (r > s))"
-    // };
-
-    // cout << "DEBUT DES TESTS" << '\n';
+    };
     
-
-    // for (unsigned int i = 0; i < testFormules.size(); ++i) {
-    //     f.setFormule(testFormules[i]);
-    //     cout << "-----" << '\n';
-    //     cout << "CNF : " << f.cnf() << '\n';
-    //     cout << "CNF LIST : " << '\n';
-    //     displayVector(f.cnfList());
-    //     cout << '\n';
-    //     cout << "-----" << '\n';
-    //     cout << '\n';
-    // }
-    f.setFormule("a|b");
-    displayVector(f.cnfListNegation());
+    f.setFormule("(a>b)&(c>d)");
+    cout << f.cnf() << '\n';
+    displayVector(f.cnfList());
 
     return 0;
 }
