@@ -120,7 +120,7 @@ def build_negation_cnfList(expression_file: str) -> list:
 
 def execute_minisat(input_file="input.cnf", result_file="output.txt") -> str:
     """
-        Exécute MiniSAT sur un fichier DIMACS et créé et lit le résultat.
+        Exécute MiniSAT sur un fichier DIMACS créé et lit le résultat.
 
         param
         -----
