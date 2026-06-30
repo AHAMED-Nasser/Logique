@@ -20,6 +20,7 @@ $$"f \text{ est une déduction logique de } K \text{ sachant les informations ex
 3. [Fonctions Algorithmiques Globales (C++)](#3-fonctions-algorithmiques-globales-c)
 4. [Interface de Liaison (Pybind11)](#4-interface-de-liaison-pybind11)
 5. [Pipeline d'Orchestration (Python)](#5-pipeline-dorchestration-python)
+6. [Syntaxe des formules](#6-syntaxe-des-formules)
 
 ---
 
@@ -162,3 +163,61 @@ False
 Car le café contient du `gasoil`, le `gasoil` va activé l'implication `(gasoil > -miam)` et MiniSat va détecter un "bug logique" qui va donc provoqué un résultat insatisfiable(`UNSAT`). Cela veut dire qu'à un certain moment MiniSat n'a pas trouver d'affectation qui pourrait satisfaire la formule. Donc on ne peut pas dire que `miam` est envisageable dans ces conditions.
 
 > Il faut noter que ces algorithmes n'ont pas été pensés pour être optimaux dès le départ. Donc, un très grand nombre de formules testés peut possiblement augmenter le temps d'exécution du processeur. Par exemple la fonction `blocDistrib` n'est pas du tout optimiser. Elle est à revoir.
+
+## 6. Syntaxe des formules
+
+L'inférence fonctionne parfaitement du moment où la syntaxe des formules est bien respecté. Les algorithmes n'étant pas pousser pour gérer les cas particulier, on va retrouver beaucoup de résultat bizzard selon la manière dont on écrit une formule. 
+
+Dans un premier voici la notation de chaque symbole mathématique vers sa version "informatique".
+
+| mathématique  | informatique | langage naturel|
+|:-------------:|:------------:|:--------------:|
+|$\Rightarrow$  | `>`          | *IMPLIES*      |
+|$\land$        | `&`          | *AND*          |
+|$\lor$         | `\|`         | *OR*           |
+|$\lnot$        | `-`          | *NOT*          |
+
+**Voici donc les règles à respecter pour une bonne notation des formules.**
+
+* Une formule possedant uniquement que des littéraux simple (avec ou sans négation) et uniquement les opérateur binaire $\land$ ou $\lor$ ne doit pas avoir de parenthèse global.
+    **Exemple :**
+    | correcte     | incorrect         | concéquence cnf | concéquence cnfList |
+    |:------------:|:-----------------:|:---------------:|:-------------------:|
+    |`a & b & c`   |`(a & b & c)`      |`a & bc`         | `[[a], [b,c]]`      |
+    |`a \| b \| c` |`(a \| b \| c)`    |`a \| bc`        | `[[a,bc]]`          |
+    |`a & b \| c`  |`(a & b \| c)`     |`a \| bc`        | `[[a,bc]]`          |
+    |`a \| b & c`  |`(a \| b & c)`     |`a & bc`         | `[[a], [bc]]`       |
+
+* Une formule respectant la même règle au dessus mais cette fois-ci comprenant des implication ne doit toujours pas prendre de paranthèse global mais l'implication dois en avoir.
+    **Exemple :**
+    | correcte         | incorrect         | concéquence cnf | concéquence cnfList |
+    |:----------------:|:-----------------:|:---------------:|:-------------------:|
+    |`(a > b) & c & d` |`((a > b) & c & d)`|`(-a \| b) & cd` |`[[-a,b], [cd]]`     |
+    |`(a > b) & c  & d`|`a > b & c & d`    |`a > b & c & d`  |`[[a>b], [c], [d]]`  |
+    |`(a > b) & c  & d`|`(a > b & c & d)`  |`-a & bcd`       |`[[-a], [bcd]]`      |
+
+* Une formule qui se trouve déjà dans une situation de CNF (donc avec les parenthèse précisé), peut avoir autant de parenthèse global qu'elle le souhaite.
+    **Exemple :**
+    | correcte         | concéquence cnf | concéquence cnfList |
+    |:----------------:|:---------------:|:-------------------:|
+    |`a & (b \| c)`    |`a & (b \| c)`   |`[[a], [b,c]]`       |
+    |`(a & (b \| c))`  |`a & (b \| c)`   |`[[a], [b,c]]`       |
+    |`((a & (b \| c)))`|`a & (b \| c)`   |`[[a], [b,c]]`       |
+
+* Une formule qui se trouve dans une situation de distributivité simplie, double, ou n-distribution doit prendre des parenthèse global. En bref sans la parenthèse global la distributivité n'est pas appliqué.
+    **Exemple :**
+    | correcte         | incorrect         | concéquence cnf | concéquence cnfList |
+    |:----------------:|:-----------------:|:---------------:|:-------------------:|
+    |`(a \| (b & c))`  |`a \| (b & c)`|`a \| (b & c)` |`[[a,b], [c]]`     |
+    |`((a & b) \| (c & d))`|`(a & b) \| (c & d)`|`(a & b) \| (c & d)`|`[[a], [b,c], [d]]`  |
+    |`((a & b) \| (c & d) \| (e & f))`|`(a & b) \| (c & d) \| (e & f)` |`(a & b) \| (c & d) \| (e & f)`|`[[a], [b,c], [d,e], [f]]`|
+
+* Une formule qui ne compose que des implications doit prendre une parenthèse global.
+    **Exemple :**
+    | correcte         | incorrect         | concéquence cnf | concéquence cnfList |
+    |:----------------:|:-----------------:|:---------------:|:-------------------:|
+    |`((a > b) > c)`   |`(a > b) > c`|`(-a \| b) > c`        |`[[-a,b>c]]`         |
+    |`((a > b) > (c > d))` |`(a > b) > (c > d)`|`(-a \| b) > (-c \| d)` |`[[-a,b>-c,d]]`     |
+
+
+Si vous souhaité tester une formule, rendez-vous dans le fichier `Workdir/main.cxx`, un test sera déjà disponible. Vous n'avez qu'à la remplacer et observer dans la console votre résultat.
