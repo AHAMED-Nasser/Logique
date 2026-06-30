@@ -4,18 +4,64 @@ Ce projet implémente un moteur de traitement et de normalisation d'expressions 
 
 ---
 
-## Sommaire
+## Introduction
 
-1. [Architecture des Classes (C++)](#1-architecture-des-classes-c)
+Ce projet tel qu'il est actuellement à pour simple but de résoudre l'inférence suivante :
+
+$$ K \vdash_{X} f$$
+$$"f \text{ est une déduction logique de } K \text{ sachant les informations exceptionnels } X"$$
+
+## Sommaire
+1. [Utilisation et exemple](#1-utiliation)
+
+2. [Architecture des Classes (C++)](#2-architecture-des-classes-c)
     * [Classe Pile](#classe-pile)
     * [Classe Formule](#classe-formule)
-2. [Fonctions Algorithmiques Globales (C++)](#2-fonctions-algorithmiques-globales-c)
-3. [Interface de Liaison (Pybind11)](#3-interface-de-liaison-pybind11)
-4. [Pipeline d'Orchestration (Python)](#4-pipeline-dorchestration-python)
+3. [Fonctions Algorithmiques Globales (C++)](#3-fonctions-algorithmiques-globales-c)
+4. [Interface de Liaison (Pybind11)](#4-interface-de-liaison-pybind11)
+5. [Pipeline d'Orchestration (Python)](#5-pipeline-dorchestration-python)
 
 ---
 
-## 1. Architecture des Classes (C++)
+## 1. Utilisation
+
+A la fin du fichier ``inference.py``, on va retrouver cette ligne ``print(verify_X_implication("file_K.txt", "file_f.txt", "file_X.txt"))``.
+
+Ce ``print`` va afficher dans la console le résultat de la fonction ``verify_X_implication``, ``True`` ou ``False`` en fonction des informations qu'il recevera en paramètre.
+
+- ``True`` : l'inférence est validé
+- ``False`` : l'inférence n'est pas validé
+
+**Prenons l'exemple suivant :**
+
+$K = \{café, (gasoil \rightarrow \lnot miam)\}$
+$f = miam$
+$X = \{\lnot miam\}$
+
+``file_K.txt``
+````
+cafe, (gasoil > -miam)
+````
+``file_f.txt``
+````
+miam
+````
+``file_X.txt``
+````
+-miam
+````
+
+$K$ : Base de connaissance initial.
+$f$ : "Théorème" à déduire.
+$X$ : Tout les informations exceptionnels (c'est les résultat qu'on ne veut pas obtenir).
+
+On inscrit ces trois formules dans trois fichier différent, qui vont être donner à la fonction ``verify_X_implication(file_K, file_f, file_X)`` qui est responsable de la résolution de l'inférence.
+
+Dans notre exemple la fonction va renvoyé ``True`` car il n'y a pas de gasoil et donc on peut déduire que le $café$ sera bon par défaut.
+
+Mais en rajoutant du gasoil ($K \cup \{gasoil\}$) la fonction renvoie ``False``, car il y a du $gasoil$ et donc on ne pas déduire que le $café$ sera bon.
+
+## 2. Architecture des Classes (C++)
 
 ### Classe Pile
 Structure de base d'une Pile prenant des chaîne de caratère.
@@ -28,61 +74,91 @@ Structure de base d'une Pile prenant des chaîne de caratère.
 ### Classe Formule
 Classe principale menant à la convertion en forme normal conjonction sous forme d'une liste de clauses.
 
-*   `void setFormule(std::string f)` : Assigne une nouvelle chaîne de caractères à l'attribut contenant la formule.
-*   `std::string cnf()` : Méthode principale exécutant le pipeline complet de normalisation : simplification des négation, élimination des implications, application des lois de De Morgan, puis distribution itérative des opérateurs.
-*   `std::vector<std::vector<std::string>> cnfList()` Cette méthode va simplement reprendre l'expression sous forme CNF et va en faire une liste de clauses. <u>C'est cette liste qui sera utilisé pour facilité la génération du fichier que souhaite MiniSAT</u>.
+Voici les méthodes que cette classe contient.
+
+| méthode | description |
+|:--------|:-----------:|
+|`void setFormule(std::string f)`|Assigne une nouvelle chaîne de caractères à l'attribut contenant la formule.|
+|`string getFormule()`| Renvoie la formule brute.|
+|`string negation_formula()`|Renvoie la formule sous forme cnf mais négative.|
+|`string nnf()` | Renvoie la formule avec les négations simplifié.|
+|`string implFree()` |Renvoie la formule après simplification des implications, sans simplication des négations.|
+|`string morgan()` | Renvoie la formule après application de la loi de De Morgan, sans simplification des négations.|
+|`string implFreeNnf()` |Renvoie le résultat de `implFree`, avec simplification des négations.|
+|`string morganNnf()` | Renvoie le résultat de `morgan`, avec simplification des négations.|
+|`string cnf()` | Méthode principale exécutant le pipeline complet de normalisation : simplification des négation, élimination des implications, application des lois de De Morgan, puis distribution itérative des opérateurs.|
+| `vector<vector<string>> cnfList()`|Cette méthode va simplement reprendre l'expression sous forme CNF et va en faire une liste de clauses. <u>C'est cette liste qui sera utilisé pour facilité la génération du fichier que souhaite MiniSAT</u>.|
+|`vector<vector<string>> cnfListNegation()`|Renvoie la négation de la forme `cnfList`.|
 
 ---
 
-## 2. Fonctions Algorithmiques Globales (C++)
+## 3. Fonctions Algorithmiques Globales (fichier `logique.cxx`)
 
 Ces fonctions effectuent les transformations mathématiques directement sur les structures de chaînes de caractères.
 
-*   `std::string nnf(std::string formule)` : Parcourt l'expression pour éliminé les doubles négations.
-*   `std::string impl_free(std::string formule)` : Supprime les connecteurs d'implication (`>`) en appliquant l'équivalence logique : A implique B devient (non A) ou B.
-*   `std::string morgan(std::string formule)` : Applique de manière itérative les lois de De Morgan afin de distribuer et descendre les symboles de négation (`-`) directement devant les variables atomiques.
-*   `std::string cnfStape(std::string formule)` : Analyse l'expression à l'aide d'une pile. Dès qu'une sous-formule fermée est détectée, elle en extrait les composants et applique la distribution si l'opérateur principal extrait est une disjonction.
-*   `std::string blocDistrib(std::string left, std::string right)` : Gère la distributivité de l'opérateur OU (`|`) sur l'opérateur ET (`&`). Elle fragmente les blocs au niveau d'imbrication 0 pour appliquer l'équivalence : A ou (B et C) devient (A ou B) et (A ou C).
-*   `std::vector<std::vector<std::string>> cnfList(std::string formule)` : Analyse la chaîne CNF finale pour en extraire la structure algébrique. Les expressions séparées par des connecteurs ET (`&`) forment des sous-listes (les clauses), qui contiennent les différents littéraux.
+| fonctions | description |
+|:--------|:-----------:|
+|`string implFree(string formule)`|Supprime les connecteurs d'implication (`>`) en appliquant l'équivalence logique : $A \rightarrow B \Leftrightarrow \lnot A \lor B$|
+|`string nnf(string formule)`| Parcourt l'expression pour éliminé les doubles négations : $\lnot\lnot A \Leftrightarrow A$|
+|`morganStape(string formule)` | Applique une étape de la loi de De Morgan : $\lnot(A \lor B) \Leftrightarrow (\lnot A \land \lnot B)$|
+|`string morgan(string formule)` | Applique de manière itérative la lois de De Morgan afin de distribuer et descendre les symboles de négation (`-`) directement devant les variables atomiques : $\lnot(A \land \lnot(B \lor C)) \Leftrightarrow (\lnot A \lor (\lnot B \land \lnot C)) $|
+|`string blocDistrib(string left, string right)` | Gère la distributivité de l'opérateur $\lor$ sur l'opérateur $\land$. Elle fragmente les blocs au niveau d'imbrication 0 pour appliquer l'équivalence : $A \lor (B \land C)$ devient $(A \lor B) \land (A \lor C)$.|
+|`string cnfStape(string formule)` | Analyse l'expression à l'aide d'une pile. Dès qu'une sous-formule fermée est détectée, elle en extrait les composants et applique la distribution si l'opérateur principal extrait est une disjonction.|
+|`string cnf(string formule)` | Renvoie la formule sous forme CNF.|
+|`vector<vector<string>> cnfList(string formule)` | Analyse la chaîne CNF finale pour en extraire la structure algébrique. Les expressions séparées par des connecteurs $\land$ forment des sous-listes (les clauses), qui contiennent les différents littéraux : $(A \lor B) \land (A \lor C)$ devient `[[A, B], [A, C]]`.|
+|`string negation_formula` | Renvoie la formule sous forme cnf mais négative : $A \lor (B \land C)$ devient $(\lnot A \land (\lnot B \lor \lnot C))$|
+|`vector<vector<string>> cnfListNegation(string formule)` | $A \lor (B \land C)$ devient `[[-A], [-B, -C]]` |
+| `string cleanParenthese(string formule)`| Fait un nettoyage des parenthèses parasites|
+
 
 ---
 
-## 3. Interface de Liaison (Pybind11)
+## 4. Interface de Liaison (Pybind11)
 
-Le module de liaison `binding.cxx` expose les composants C++ à l'interpréteur Python sans surcoût d'exécution.
+Le module de liaison `binding.cxx` permet de lier les méthodes ou classe C++ à Python sans perdre en éfficacité. C'est une sorte de minibibliothèque personnalisé qui s'appelle ici `logicEngine`. Et on a la possibilité de choisir quelles fonctions ou classes pourrons être utilisé dans le code Python. 
 
-*   Liaison de la classe `Formule` avec exposition des méthodes `set_formule`, `getFormule`, `cnf` et `cnfList`.
+*   Liaison de la classe `Formule` avec exposition des méthodes `set_formule`, `getFormule`, `cnf`, `cnfList`, `negation_formula` et `cnfListNegation`.
+
+> Note : la méthode `cnf` et `negation_formula` peuvent techniquement être retirer de la bibliothèque. Mais dans le doûte elles ont était gardés. (On ne sait jamais pour plus tard, même si on peut changer ça très facilement)
 
 ---
 
-## 4. Pipeline d'Orchestration (Python)
+## 5. Pipeline d'Orchestration (Python)
 
-Le fichier `minisat_fonctions.py` gère la logistique d'entrée, la conversion numérique des littéraux et l'interfaçage système avec le solveur externe.
+Le fichier `inference.py` gère la gestion des données (fichiers txt) en entrèes, la création des fichier `DIMAC CNF` pour MiniSat, l'execution de MiniSat et l'algorithme principale permettant d'appliquer l'inférence : $K \vdash_{X} f$.
 
-*   `generer_dimacs(raw_formula: str, in_file="input.cnf")` : Récupère la structure de clauses générée par le code C++, recense l'ensemble des variables uniques pour leur attribuer un index numérique entier positif (1, 2, 3...) et produit le fichier au format standardisé `.cnf`. Le fichier inclut l'en-tête DIMACS standard (`p cnf [nombre_variables] [nombre_clauses]`) et chaque clause se termine par le marqueur `0`.
-*   `executer_minisat(input_file="input.cnf", result_file="output.txt")` : Appelle l'exécutable système `minisat` via un sous-processus, intercepte les codes de retour spécifiques du solveur (10 pour SAT, 20 pour UNSAT) et retourne la satifiabilité de l'expression.
-*   `show_satisfiability(expression: str)` :
-Exécute les deux fonctions précédente et renvoie le résultat de la satisfiabilité de l'expression (SAT ou UNSAT)
+| fonction | Description |
+|:---------|:-----------:|
+|`build_expressions_list(expression_file: str) -> list`|Renvoi une liste contenant les expressions du fichier `expressions_file`|
+|`build_clauses_list(expression_files: list[str]) -> list`|Renvoi un cnfList liant chaque formule entre eux.|
+|`write_dimac_file_from_clauses(clauses: list, input_file="temp_eval.cnf") -> None`| Créer un ficher `DIMAC CNF` d'une fomule sous forme cnfList|
+|`build_negation_cnfList(expression_file: str) -> list`|Construit la négation d'une formule logique donnée sous forme de cnfList.|
+|`execute_minisat(input_file="input.cnf", result_file="output.txt") -> str`|Exécute MiniSAT sur un fichier DIMACS créé et lit le résultat.|
+|`verify_X_implication(file_K, file_f, file_X) -> str`| Renvoie `True` si l'inférence finale est satisfiable, sinon`False` 
 
-Le fichier `many_minisat.py` fait exactement la même chose que le fichier `minisat_fonctions.py`, mais étendu à l'échelle de plusieurs expressions. Cette fois-ci, on teste la satisfiabilité de plusieurs expressions données dans un ou plusieurs fichiers.
+Voici un exemple d'exécution de la fonction.
 
-*   `build_expressions_list(expression_file: str)` :
-Cette fonction prend en paramètre le chemin d'un fichier texte contenant des expressions logiques, chacune séparée par des virgules. Son but est de retourner une liste contenant toutes les expressions du fichier.
-*   `return_expressions_satisfiability(expressions_files: list)` :
-Cette fonction prend en paramètre une liste de fichiers texte contenant chacun des expressions logiques. Le but de cette fonction est de renvoyer la satisfiabilité finale de l'ensemble de ces fichiers. Par exemple, si au moins un fichier est insatisfiable, on renvoie `UNSAT`, sinon on renvoie `SAT`.
-
-Voici un exemple d'exécution de la dernière fonction
+``file_K.txt``
+````
+cafe, (gasoil > -miam), gasoil
+````
+``file_f.txt``
+````
+miam
+````
+``file_X.txt``
+````
+-miam
+````
 ```python
-# fichier expressions1.txt -> SAT
-# fichier expressions2.txt -> SAT
-# fichier expression3.txt -> UNSAT
 
-expressions = ["expressions1.txt", "expressions2.txt", "expressions3.txt"]
-print(return_expressions_satisfiability(expressions))
+print(verify_X_implication("file_K.txt", "file_f.txt", "file_X.txt"))
 ```
-Donc le résultat sera
+Le résultat sera
+
 ```bash
-UNSAT
+False
 ```
+Car le café contient du `gasoil`, le `gasoil` va activé l'implication `(gasoil > -miam)` et MiniSat va détecter un "bug logique" qui va donc provoqué un résultat insatisfiable(`UNSAT`). Cela veut dire qu'à un certain moment MiniSat n'a pas trouver d'affectation qui pourrait satisfaire la formule. Donc on ne peut pas dire que `miam` est envisageable dans ces conditions.
 
-> Il faut noter que ces algorithmes n'ont pas été pensés pour être optimaux dès le départ. Donc, un grand nombre de fichiers testés peut possiblement augmenter le temps d'exécution du processeur.
+> Il faut noter que ces algorithmes n'ont pas été pensés pour être optimaux dès le départ. Donc, un très grand nombre de formules testés peut possiblement augmenter le temps d'exécution du processeur. Par exemple la fonction `blocDistrib` n'est pas du tout optimiser. Elle est à revoir.
