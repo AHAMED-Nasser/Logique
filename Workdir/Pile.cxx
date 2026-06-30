@@ -4,32 +4,34 @@
 #include <string>
 #include "Pile.h"
 
+using namespace std;
 
 bool Pile::isEmpty() const {
     return pile.empty();
 }
 
-void Pile::stack(char c) {
+void Pile::stack(string c) {
     pile.push_back(c);
 }
 
-char Pile::unstack() {
-    if (pile.empty()) throw std::out_of_range("Pile vide");
-    char c = pile.back();
+string Pile::unstack() {
+    if (pile.empty()) throw std::out_of_range("Pile vide"); // Si la pile est vide -> erreur
+    string c = pile.back();
     pile.pop_back();
     return c;
 }
 
-char Pile::top() const {
+string Pile::top() const {
     if (pile.empty()) throw std::out_of_range("Pile vide");
     return pile.back();
 }
 
-std::string Pile::toString() const {
+string Pile::toString() const {
+    // Construction basique d'une chaine de caractère
     std::string s = "[";
     for (unsigned int i = 0; i < pile.size(); ++i) {
         s += pile[i];
-        if (i < pile.size() - 1) {
+        if (i < pile.size() - 1) { // Évite une virgule à la fin de la liste
             s += ",";
         }
     }

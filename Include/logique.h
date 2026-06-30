@@ -7,30 +7,48 @@
 #include <utility>
 #include "Pile.h"
 
-int precedence(char c);
+// Ce fichier contient l'ensemble des fonctions permetant de faire des opérations logique.
 
-bool is_operator(char c);
+int precedence(char c); // Retourne le niveau de priorité d'un opérateur (ex: la négation est prioritère a la conjonction)
 
-bool is_proposition(char c);
+bool is_operator(char c); // Retourne vrai si un symbole fait partie des opérateurs autorisés
 
-// Méthode python que je refais en c++
+bool is_proposition(char c); // Retourne vrai si un symbole fait parti de l'alphabet minuscule (de a à z)
+
+// Méthode python refaites en c++
 // DEBUT
-std::string strip(const std::string& s);
+std::string strip(const std::string& s); // Retourne une string sans espaces
 
-bool starts_with(const std::string& str, const std::string& paterne);
+std::string reversed(const std::string& str); // Renverse et renvoie une string
 
-bool ends_with(const std::string& str, const std::string& paterne);
-
-std::string reversed(const std::string& str);
-
-std::string string_between(const std::string& str, int start, int end);
 // FIN
 
-std::string impl_free(std::string formule);
+std::string implFree(std::string formule); // Retourne la formule en tranformant l'implication en disjonction
 
-std::pair<int, char> get_main_op_morgan(const std::string& formule);
+std::string morganStape(std::string formule); // Retourne la formule avec UNE SEULE étape de la loi de De Morgan
 
-std::string morgan(std::string formule);
+std::string morgan(std::string formule); // Retourne la formule appliquée à la loi de De Morgan
 
+std::string nnf(std::string formule); // Retourne la formule avec la négation simplifiée (NNF - Negation Normal Form)
+
+std::string blocDistrib(std::string left, std::string right); // Retourne la formule après distribution
+
+std::string cnfStape(std::string formule); // Retourne la formule avec UNE SEULE étape de cnf
+
+std::string cnf(std::string formule); // Retourne la formule sous forme CNF
+
+std::string negation_formula(std::string formule); // Retourne la négation de la formule
+
+std::vector<std::vector<std::string>>  cnfList(std::string); // Retourne la formule CNF sous forme d'un vecteur de vecteur
+// Exemple: "(a|b) & (a\c) devient {{a,b},{a,c}}"
+
+std::vector<std::vector<std::string>> cnfListNegation(std::string formule); // Retourne la formule négative sous forme d'un vecteur de vecteur
+// Exemple: "(a | (b & c))" devient {{-a}, {-b,-c}}
+
+
+
+
+
+std::string cleanParenthese(std::string formule); // Retourne la formule sans les parenthèse global au tours.
 
 #endif

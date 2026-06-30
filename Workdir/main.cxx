@@ -5,20 +5,39 @@
 
 using namespace std;
 
+// Fonction de teste pour afficher un vector<vector<string>> de manière lisible
+void displayVector(vector<vector<string>> listCnf) {
+    cout << "[";
+    for (size_t i = 0; i < listCnf.size(); ++i) {
+        cout << "[";
+        
+        // Boucle à travers les éléments de la clause actuelle
+        for (size_t j = 0; j < listCnf[i].size(); ++j) {
+            cout << listCnf[i][j];
+            if (j < listCnf[i].size() - 1) {
+                cout << ","; // Petit séparateur entre les variables
+            }
+        }
+        
+        cout << "]";
+
+        if (i < listCnf.size()-1) {
+            cout << ",";
+        }
+    }
+
+    cout << "]";
+}
+
+
 int main() {
 
     Formule f;
-    f.setFormule("(-a)>b");
+    
+    f.setFormule("(a | (b & c))");
+    cout << f.cnf() << '\n';
+    displayVector(f.cnfList());
 
-    string apres_impl = f.impl_free();
-    cout << "DEBUG impl_free : " << apres_impl << endl;
-
-    string apres_morgan =f.morgan();
-    cout << "DEBUG morgan : " << apres_morgan << endl;
-
-    string impl = morgan(impl_free("-(p>q)&(p>q)"));
-
-    cout << "DEBUG impl_free: " << impl_free("(p>q)&(p>q)") << endl;
-    cout << "DEBUG morgan + impl_free : " << impl << '\n';
     return 0;
 }
+
